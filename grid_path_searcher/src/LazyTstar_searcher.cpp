@@ -3,29 +3,29 @@
 using namespace std;
 using namespace Eigen;
 
-inline bool LazyTstarPathFinder::isOccupied(const Eigen::Vector3i & index) const
+bool LazyTstarPathFinder::isOccupied(const Eigen::Vector3i & index) const
 {
     return isOccupied(index(0), index(1), index(2));
 }
 
-inline bool LazyTstarPathFinder::isFree(const Eigen::Vector3i & index) const
+bool LazyTstarPathFinder::isFree(const Eigen::Vector3i & index) const
 {
     return isFree(index(0), index(1), index(2));
 }
 
-inline bool LazyTstarPathFinder::isOccupied(const int & idx_x, const int & idx_y, const int & idx_z) const 
+bool LazyTstarPathFinder::isOccupied(const int & idx_x, const int & idx_y, const int & idx_z) const 
 {
     return  (idx_x >= 0 && idx_x < GLX_SIZE && idx_y >= 0 && idx_y < GLY_SIZE && idx_z >= 0 && idx_z < GLZ_SIZE && 
             (data[idx_x * GLYZ_SIZE + idx_y * GLZ_SIZE + idx_z] == 1));
 }
 
-inline bool LazyTstarPathFinder::isFree(const int & idx_x, const int & idx_y, const int & idx_z) const 
+bool LazyTstarPathFinder::isFree(const int & idx_x, const int & idx_y, const int & idx_z) const 
 {
     return (idx_x >= 0 && idx_x < GLX_SIZE && idx_y >= 0 && idx_y < GLY_SIZE && idx_z >= 0 && idx_z < GLZ_SIZE && 
            (data[idx_x * GLYZ_SIZE + idx_y * GLZ_SIZE + idx_z] < 1));
 }
 
-inline void LazyTstarPathFinder::LThetastarGetSucc(GridNodePtr currentPtr, std::vector<GridNodePtr> & neighborPtrSets, std::vector<double> & edgeCostSets){
+void LazyTstarPathFinder::LThetastarGetSucc(GridNodePtr currentPtr, std::vector<GridNodePtr> & neighborPtrSets, std::vector<double> & edgeCostSets){
     neighborPtrSets.clear();
     edgeCostSets.clear();
     
@@ -183,32 +183,52 @@ bool LazyTstarPathFinder::LineOfSight(Eigen::Vector3i start, Eigen::Vector3i end
 
 }
 
-void LazyTstarPathFinder::ValidateParent(GridNodePtr current , GridNodePtr goal){
+void LazyTstarPathFinder::ValidateParent(GridNodePtr currentPtr , GridNodePtr goal){
 
-    if (!LineOfSight(current->cameFrom->index, current->index)) {
+    if (!LineOfSight(currentPtr->cameFrom->index, currentPtr->index)) {
 
         vector<GridNodePtr> neighborPtrSets;
         vector<double> edgeCostSets;
         GridNodePtr neighborPtr = NULL;
 
-        AstarGetSucc(current, neighborPtrSets, edgeCostSets);
+        AstarPathFinder::AstarGetSucc(currentPtr, neighborPtrSets, edgeCostSets);
         
         for(int i = 0; i < (int)neighborPtrSets.size(); i++){
             neighborPtr = neighborPtrSets[i];
-            
-            if(neighborPtr->id==-1){
-                double gh = current->gScore + edgeCostSets[i];
-                double fh = gh + getHeu(neighborPtr,goal);
-                if(gh < neighborPtr->gScore){
+            double gh = currentPtr->cameFrom->gScore + edgeCostSets[i];
+            double fh = gh + getHeu(neighborPtr,goal);
+
+            // 如果为自由节点
+            if(neighborPtr -> id == 0){ 
+                
+                // 计算相应的g和f，并加入opensets
+                neighborPtr->gScore = gh;
+                neighborPtr->fScore = fh;
+                neighborPtr->cameFrom = currentPtr;
+
+                neighborPtr->nodeMapIt = openSet.insert(make_pair(neighborPtr->fScore,neighborPtr));
+                // 标记为open list
+                neighborPtr->id = 1;
+                continue;
+
+                
+            }
+            else if(neighborPtr ->id == 1){ 
+                // 如果已经在openlist里面
+                if(neighborPtr->gScore > gh)
+                {
+                    // 更新对应的f值
+
                     neighborPtr->gScore = gh;
                     neighborPtr->fScore = fh;
-                    neighborPtr->cameFrom = current;
-                    
+                    neighborPtr->cameFrom = currentPtr;
+                    openSet.erase(neighborPtr->nodeMapIt);
+                    neighborPtr->nodeMapIt = openSet.insert(make_pair(neighborPtr->fScore,neighborPtr));
+
+
                 }
             }
-
-        }
-        
+        }   
     }
 }
 
@@ -257,7 +277,7 @@ void LazyTstarPathFinder::LThetastarGraphSearch(Eigen::Vector3d start_pt, Eigen:
 
         // 从开集中移除
         openSet.erase(openSet.begin());
-        Eigen::Vector3i current_idx = currentPtr->index;
+        //Eigen::Vector3i current_idx = currentPtr->index;
 
         // First, check if we have LOS from the parent and update the parent and g-value of curr if necessary.
         ValidateParent(currentPtr,endPtr);
@@ -287,7 +307,8 @@ void LazyTstarPathFinder::LThetastarGraphSearch(Eigen::Vector3d start_pt, Eigen:
                 if(neighborPtr->index == goalIdx){
                     ros::Time time_2 = ros::Time::now();
                     terminatePtr = neighborPtr;
-                    ROS_WARN("[A*]{sucess}  Time in A*  is %f ms, path cost if %f m", (time_2 - time_1).toSec() * 1000.0, currentPtr->gScore * resolution );    
+                    startPtr->cameFrom= NULL;
+                    ROS_WARN("[theta*]{sucess}  Time in theta*  is %f ms, path cost if %f m", (time_2 - time_1).toSec() * 1000.0, currentPtr->gScore * resolution );    
                     return;
                 }
                 else{
@@ -316,12 +337,14 @@ void LazyTstarPathFinder::LThetastarGraphSearch(Eigen::Vector3d start_pt, Eigen:
                 // 如果是closelist里面的则不做处理
                 continue;
             }
-              
+        } 
     }
+        
     //if search fails
     ros::Time time_2 = ros::Time::now();
-    if((time_2 - time_1).toSec() > 0.1)
-        ROS_WARN("Time consume in Astar path finding is %f", (time_2 - time_1).toSec() );
-
+    if((time_2 - time_1).toSec() > 0.1){
+    ROS_WARN("Time consume in theta_star path finding is %f", (time_2 - time_1).toSec() );
+    }
+        
 }
 

@@ -18,6 +18,12 @@
 #include "JPS_searcher.h"
 #include "backward.hpp"
 
+#include "ARAstar_searcher.h"
+#include "Dstar_searcher.h"
+#include "LazyTstar_searcher.h"
+
+
+
 using namespace std;
 using namespace Eigen;
 
@@ -41,7 +47,11 @@ ros::Subscriber _map_sub, _pts_sub;
 ros::Publisher  _grid_path_vis_pub, _visited_nodes_vis_pub, _grid_map_vis_pub;
 
 AstarPathFinder * _astar_path_finder     = new AstarPathFinder();
+ARAPathFinder * _ara_path_finder = new ARAPathFinder();
+DstarPathFinder * _dstar_path_finder =new DstarPathFinder();
 JPSPathFinder   * _jps_path_finder       = new JPSPathFinder();
+LazyTstarPathFinder * _lazytheta_path_finder = new LazyTstarPathFinder();
+
 
 void rcvWaypointsCallback(const nav_msgs::Path & wp);
 void rcvPointCloudCallBack(const sensor_msgs::PointCloud2 & pointcloud_map);
@@ -91,6 +101,9 @@ void rcvPointCloudCallBack(const sensor_msgs::PointCloud2 & pointcloud_map)
         _astar_path_finder->setObs(pt.x, pt.y, pt.z);
         _jps_path_finder->setObs(pt.x, pt.y, pt.z);
 
+        _lazytheta_path_finder->setObs(pt.x, pt.y, pt.z);
+
+
         // for visualize only
         Vector3d cor_round = _astar_path_finder->coordRounding(Vector3d(pt.x, pt.y, pt.z)); // 将坐标变为栅格坐标再逆变换回来 中间会损失一些信息
         pt.x = cor_round(0);
@@ -115,42 +128,71 @@ void rcvPointCloudCallBack(const sensor_msgs::PointCloud2 & pointcloud_map)
 // 在给定起点，终点和障碍物信息的情况下进行路径搜索
 void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
 {
+    
+    #define _use_astar 0
+    #if _use_astar
+    {
+        // 路径搜索关键函数
+        _astar_path_finder->AstarGraphSearch(start_pt, target_pt);
 
-    // 路径搜索关键函数
-    _astar_path_finder->AstarGraphSearch(start_pt, target_pt);
+        // 获取路径和访问过的节点
+        auto grid_path     = _astar_path_finder->getPath();
+        auto visited_nodes = _astar_path_finder->getVisitedNodes();
 
-    // 获取路径和访问过的节点
-    auto grid_path     = _astar_path_finder->getPath();
-    auto visited_nodes = _astar_path_finder->getVisitedNodes();
+        // 可视化路径和访问过的节点
+        visGridPath (grid_path, false);
+        visVisitedNode(visited_nodes);
 
-    // 可视化路径和访问过的节点
-    visGridPath (grid_path, false);
-    visVisitedNode(visited_nodes);
+        // 重置节点信息
+        _astar_path_finder->resetUsedGrids();
+    }
+    #endif
+    
 
-    // 重置节点信息
-    _astar_path_finder->resetUsedGrids();
 
     //_use_jps = 0 -> Do not use JPS
     //_use_jps = 1 -> Use JPS
     //you just need to change the #define value of _use_jps
-#define _use_jps 1
-#if _use_jps
+
+    #define _use_jps 0
+    #if _use_jps
+        {
+            // JPS路径搜索
+            _jps_path_finder -> JPSGraphSearch(start_pt, target_pt);
+
+            //Retrieve the path
+            auto grid_path     = _jps_path_finder->getPath();
+            auto visited_nodes = _jps_path_finder->getVisitedNodes();
+
+            //Visualize the result
+            visGridPath   (grid_path, _use_jps);
+            visVisitedNode(visited_nodes);
+
+            //Reset map for next call
+            _jps_path_finder->resetUsedGrids();
+        }
+    #endif
+
+    #define _use_theta 1
+    #if _use_theta
     {
-        // JPS路径搜索
-        _jps_path_finder -> JPSGraphSearch(start_pt, target_pt);
-
-        //Retrieve the path
-        auto grid_path     = _jps_path_finder->getPath();
-        auto visited_nodes = _jps_path_finder->getVisitedNodes();
-
-        //Visualize the result
-        visGridPath   (grid_path, _use_jps);
+        // 路径搜索关键函数
+        _lazytheta_path_finder->LThetastarGraphSearch(start_pt, target_pt);
+        ROS_INFO("get path()");
+        // 获取路径和访问过的节点
+        auto grid_path     = _lazytheta_path_finder->getPath();
+        ROS_INFO("get visited nodes");
+        auto visited_nodes = _lazytheta_path_finder->getVisitedNodes();
+        ROS_INFO("vis");
+        // 可视化路径和访问过的节点
+        visGridPath (grid_path, true);
         visVisitedNode(visited_nodes);
 
-        //Reset map for next call
-        _jps_path_finder->resetUsedGrids();
+        // 重置节点信息
+        _lazytheta_path_finder->resetUsedGrids();
     }
-#endif
+    #endif
+
 }
 
 int main(int argc, char** argv)
@@ -199,6 +241,9 @@ int main(int argc, char** argv)
     _jps_path_finder    = new JPSPathFinder();
     _jps_path_finder    -> initGridMap(_resolution, _map_lower, _map_upper, _max_x_id, _max_y_id, _max_z_id);
     
+    _lazytheta_path_finder = new LazyTstarPathFinder();
+    _lazytheta_path_finder->initGridMap(_resolution, _map_lower, _map_upper, _max_x_id, _max_y_id, _max_z_id);
+
     ros::Rate rate(100);
     bool status = ros::ok();
     while(status) 
@@ -210,17 +255,18 @@ int main(int argc, char** argv)
 
     delete _astar_path_finder;
     delete _jps_path_finder;
+    delete _lazytheta_path_finder;
     return 0;
 }
 
-void visGridPath( vector<Vector3d> nodes, bool is_use_jps )
+void visGridPath( vector<Vector3d> nodes, bool is_use_variant )
 {   
     visualization_msgs::Marker node_vis; 
     node_vis.header.frame_id = "world";
     node_vis.header.stamp = ros::Time::now();
     
-    if(is_use_jps)
-        node_vis.ns = "demo_node/jps_path";
+    if(is_use_variant)
+        node_vis.ns = "demo_node/variant_path";
     else
         node_vis.ns = "demo_node/astar_path";
 
@@ -233,7 +279,7 @@ void visGridPath( vector<Vector3d> nodes, bool is_use_jps )
     node_vis.pose.orientation.z = 0.0;
     node_vis.pose.orientation.w = 1.0;
 
-    if(is_use_jps){
+    if(is_use_variant){
         node_vis.color.a = 1.0;
         node_vis.color.r = 1.0;
         node_vis.color.g = 0.0;
@@ -300,4 +346,5 @@ void visVisitedNode( vector<Vector3d> nodes )
     }
 
     _visited_nodes_vis_pub.publish(node_vis);
+
 }

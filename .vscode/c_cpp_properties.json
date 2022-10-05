@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/include/",
+                "/opt/ros/melodic/include",
+                "/usr/include/x86_64-linux-gnu",
+                "${workspaceFolder}/grid_path_searcher/include",
+                "/usr/include/pcl-1.8",
+                "${workspaceFolder}/grid_path_searcher/src"
+            ],
+            "defines": [],
+            "compilerPath": "/opt/gcc-arm-none-eabi-9-2020-q2-update/bin/arm-none-eabi-gcc",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-arm"
+        }
+    ],
+    "version": 4
+}

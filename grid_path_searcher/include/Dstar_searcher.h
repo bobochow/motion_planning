@@ -2,7 +2,7 @@
 # define _DSTAR_SEARCHER_H
 
 #include "Astar_searcher.h"
-
+#include <iostream>
 class DstarPathFinder : public AstarPathFinder
 {
 

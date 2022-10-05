@@ -137,7 +137,7 @@ inline bool AstarPathFinder::isFree(const int & idx_x, const int & idx_y, const 
            (data[idx_x * GLYZ_SIZE + idx_y * GLZ_SIZE + idx_z] < 1));
 }
 
-inline void AstarPathFinder::AstarGetSucc(GridNodePtr currentPtr, vector<GridNodePtr> & neighborPtrSets, vector<double> & edgeCostSets)
+void AstarPathFinder::AstarGetSucc(GridNodePtr currentPtr, vector<GridNodePtr> & neighborPtrSets, vector<double> & edgeCostSets)
 {   
     neighborPtrSets.clear();
     edgeCostSets.clear();
@@ -367,8 +367,8 @@ vector<Vector3d> AstarPathFinder::getPath()
     vector<Vector3d> path;
     vector<GridNodePtr> gridPath;
     
-
     GridNodePtr tmp_ptr = terminatePtr;
+    
     while(tmp_ptr->cameFrom != NULL )
     {
         gridPath.push_back(tmp_ptr);

@@ -33,6 +33,8 @@ add_executable( demo_node
     src/Astar_searcher.cpp
     src/read_only/JPS_utils.cpp
     src/read_only/JPS_searcher.cpp
+    src/LazyTstar_searcher.cpp
+    
     )
 
 target_link_libraries(demo_node 
