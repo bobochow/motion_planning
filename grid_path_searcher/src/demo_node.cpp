@@ -102,7 +102,8 @@ void rcvPointCloudCallBack(const sensor_msgs::PointCloud2 & pointcloud_map)
         _jps_path_finder->setObs(pt.x, pt.y, pt.z);
 
         _lazytheta_path_finder->setObs(pt.x, pt.y, pt.z);
-
+        _ara_path_finder->setObs(pt.x, pt.y, pt.z);
+        _dstar_path_finder->setObs(pt.x, pt.y, pt.z);
 
         // for visualize only
         Vector3d cor_round = _astar_path_finder->coordRounding(Vector3d(pt.x, pt.y, pt.z)); // 将坐标变为栅格坐标再逆变换回来 中间会损失一些信息
@@ -148,11 +149,45 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
     }
     #endif
     
+    #define _use_ara 0
+    #if _use_ara
+    {
+        // ara路径搜索
+        _ara_path_finder -> ARAGraphSearch(start_pt, target_pt);
 
+        //Retrieve the path
+        auto grid_path     = _ara_path_finder->getaraPath();
+        auto visited_nodes = _ara_path_finder->getVisitedNodes();
 
+        //Visualize the result
+        visGridPath   (grid_path, _use_ara);
+        visVisitedNode(visited_nodes);
+
+        //Reset map for next call
+        _ara_path_finder->resetUsedGrids();
+    }
+    #endif
     //_use_jps = 0 -> Do not use JPS
     //_use_jps = 1 -> Use JPS
     //you just need to change the #define value of _use_jps
+
+    #define _use_dstar 1
+    #if _use_dstar
+    {
+        _dstar_path_finder->DstarGraphSearch(start_pt, target_pt);
+        //Retrieve the path
+        auto grid_path     = _dstar_path_finder->DstarPath;
+        auto visited_nodes = _dstar_path_finder->getVisitedNodes();
+        //Visualize the result
+        visGridPath   (grid_path, _use_dstar);
+        visVisitedNode(visited_nodes);
+
+        //Reset map for next call
+        _dstar_path_finder->resetUsedGrids();
+
+    }
+    #endif
+
 
     #define _use_jps 0
     #if _use_jps
@@ -173,7 +208,7 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
         }
     #endif
 
-    #define _use_theta 1
+    #define _use_theta 0
     #if _use_theta
     {
         // 路径搜索关键函数
@@ -185,7 +220,7 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
         auto visited_nodes = _lazytheta_path_finder->getVisitedNodes();
         ROS_INFO("vis");
         // 可视化路径和访问过的节点
-        visGridPath (grid_path, true);
+        visGridPath (grid_path, _use_theta);
         visVisitedNode(visited_nodes);
 
         // 重置节点信息
@@ -244,6 +279,12 @@ int main(int argc, char** argv)
     _lazytheta_path_finder = new LazyTstarPathFinder();
     _lazytheta_path_finder->initGridMap(_resolution, _map_lower, _map_upper, _max_x_id, _max_y_id, _max_z_id);
 
+    _ara_path_finder = new ARAPathFinder();
+    _ara_path_finder->initGridMap(_resolution, _map_lower, _map_upper, _max_x_id, _max_y_id, _max_z_id);
+
+    _dstar_path_finder = new DstarPathFinder();
+    _dstar_path_finder->initGridMap(_resolution, _map_lower, _map_upper, _max_x_id, _max_y_id, _max_z_id);
+    
     ros::Rate rate(100);
     bool status = ros::ok();
     while(status) 
@@ -256,6 +297,8 @@ int main(int argc, char** argv)
     delete _astar_path_finder;
     delete _jps_path_finder;
     delete _lazytheta_path_finder;
+    delete _ara_path_finder;
+    delete _dstar_path_finder;
     return 0;
 }
 

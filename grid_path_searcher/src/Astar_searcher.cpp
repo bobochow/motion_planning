@@ -275,8 +275,6 @@ void AstarPathFinder::AstarGraphSearch(Vector3d start_pt, Vector3d end_pt)
     startPtr -> gScore = 0;
     startPtr -> fScore = getHeu(startPtr,endPtr);   
 
-
-
     // 将起点加入开集
     // 自由点为0 闭集为-1 开集为1
     startPtr -> id = 1; 
@@ -360,6 +358,7 @@ void AstarPathFinder::AstarGraphSearch(Vector3d start_pt, Vector3d end_pt)
     if((time_2 - time_1).toSec() > 0.1)
         ROS_WARN("Time consume in Astar path finding is %f", (time_2 - time_1).toSec() );
 }
+
 
 
 vector<Vector3d> AstarPathFinder::getPath() 

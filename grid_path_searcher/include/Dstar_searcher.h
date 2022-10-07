@@ -15,15 +15,21 @@ protected:
 
     double k_min,k_old;
 
+    
+
+
 public:
 
+    std::vector<Eigen::Vector3d> DstarPath;
 
-    void insert(GridNodePtr n,double & h_new);
+    void insert(GridNodePtr n,double h_new);
     double process_state();
+    
     void modify_cost(GridNodePtr n);
     void DstarGetSucc(GridNodePtr currentPtr, std::vector<GridNodePtr> & neighborPtrSets, std::vector<double> & edgeCostSets);
     void DstarGraphSearch(Eigen::Vector3d start_pt, Eigen::Vector3d end_pt);
-
+    
+    //std::vector<Eigen::Vector3d> getDstarPath(GridNodePtr n);
 
 };
 

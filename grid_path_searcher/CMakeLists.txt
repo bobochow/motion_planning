@@ -34,8 +34,9 @@ add_executable( demo_node
     src/read_only/JPS_utils.cpp
     src/read_only/JPS_searcher.cpp
     src/LazyTstar_searcher.cpp
-    
-    )
+    src/ARAstar_searcher.cpp
+    src/Dstar_searcher.cpp
+)
 
 target_link_libraries(demo_node 
     ${catkin_LIBRARIES}
