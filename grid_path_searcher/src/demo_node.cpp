@@ -171,7 +171,7 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
     //_use_jps = 1 -> Use JPS
     //you just need to change the #define value of _use_jps
 
-    #define _use_dstar 1
+    #define _use_dstar 0
     #if _use_dstar
     {
         _dstar_path_finder->DstarGraphSearch(start_pt, target_pt);
@@ -189,7 +189,7 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
     #endif
 
 
-    #define _use_jps 0
+    #define _use_jps 1
     #if _use_jps
         {
             // JPS路径搜索
