@@ -10,11 +10,15 @@
 #include <algorithm>
 
 
-#define Euclidean 0
-#define Manhattan 1
-#define L_infty 2
-#define Diagonal 3
+
 #define use_Tie_breaker 1
+
+enum distance_norm{
+	EuclideanDis,
+	ManhattanDis,
+	L_inftyDis,
+	DiagonalDis
+};
 
 // Astar路径规划类
 class AstarPathFinder
@@ -25,6 +29,7 @@ class AstarPathFinder
 		uint8_t * data;
 		GridNodePtr *** GridNodeMap;
 		Eigen::Vector3i goalIdx;
+
 		int GLX_SIZE, GLY_SIZE, GLZ_SIZE;
 		int GLXYZ_SIZE, GLYZ_SIZE;
 
@@ -34,6 +39,8 @@ class AstarPathFinder
 
 		GridNodePtr terminatePtr;
 		std::multimap<double, GridNodePtr> openSet;
+
+		
 
 		double getHeu(GridNodePtr node1, GridNodePtr node2);
 		void AstarGetSucc(GridNodePtr currentPtr, std::vector<GridNodePtr> & neighborPtrSets, std::vector<double> & edgeCostSets);		
@@ -49,7 +56,11 @@ class AstarPathFinder
 	public:
 		AstarPathFinder(){};
 		~AstarPathFinder(){};
+
+		int distance_norm;
+
 		void AstarGraphSearch(Eigen::Vector3d start_pt, Eigen::Vector3d end_pt);
+
 		void resetGrid(GridNodePtr ptr);
 		void resetUsedGrids();
 

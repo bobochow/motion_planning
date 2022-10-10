@@ -189,7 +189,7 @@ void JPSPathFinder::JPSGraphSearch(Eigen::Vector3d start_pt, Eigen::Vector3d end
         currentPtr->id = -1; // 标记为闭集
 
         openSet.erase(openSet.begin());
-        Eigen::Vector3i current_idx = currentPtr->index;
+        //Eigen::Vector3i current_idx = currentPtr->index;
 
 
         //get the succetion

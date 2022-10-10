@@ -191,35 +191,35 @@ void AstarPathFinder::AstarGetSucc(GridNodePtr currentPtr, vector<GridNodePtr> &
 double AstarPathFinder::getHeu(GridNodePtr node1, GridNodePtr node2)
 {
     
-    int distance_norm = Diagonal;
-    double h ;
+    
+    double h=0.0 ;
     Eigen::Vector3i start_index = node1->index;
     Eigen::Vector3i end_index = node2->index;
 
     switch (distance_norm)
     {
-    case Euclidean:
+    case EuclideanDis:
         {
         double dx = abs((double)(start_index(0) - end_index(0)));
         double dy = abs((double)(start_index(1) - end_index(1)));
         double dz = abs((double)(start_index(2) - end_index(2)));
         h = std::sqrt((std::pow(dx,2.0) + std::pow(dy,2.0)+std::pow(dz,2.0)));
         break;}
-    case Manhattan:
+    case ManhattanDis:
         {
         double dx = abs((double)(start_index(0) - end_index(0)));
         double dy = abs((double)(start_index(1) - end_index(1)));
         double dz = abs((double)(start_index(2) - end_index(2)));
         h = dx + dy + dz;
         break;}
-    case L_infty:
+    case L_inftyDis:
         {
         double dx = abs((double)(start_index(0) - end_index(0)));
         double dy = abs((double)(start_index(1) - end_index(1)));
         double dz = abs((double)(start_index(2) - end_index(2)));
         h = std::max({dx,dy,dz});}
         break;
-    case Diagonal:
+    case DiagonalDis:
         {
         double distance[3];
         distance[0] = abs((double)(start_index(0) - end_index(0)));
@@ -293,7 +293,7 @@ void AstarPathFinder::AstarGraphSearch(Vector3d start_pt, Vector3d end_pt)
 
         // 从开集中移除
         openSet.erase(openSet.begin());
-        Eigen::Vector3i current_idx = currentPtr->index;
+        //Eigen::Vector3i current_idx = currentPtr->index;
 
 
         // 获取拓展集合
