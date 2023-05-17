@@ -322,7 +322,7 @@ void AstarPathFinder::AstarGraphSearch(Vector3d start_pt, Vector3d end_pt)
                 if(neighborPtr->index == goalIdx){
                     ros::Time time_2 = ros::Time::now();
                     terminatePtr = neighborPtr;
-                    ROS_WARN("[A*]{sucess}  Time in A*  is %f ms, path cost if %f m", (time_2 - time_1).toSec() * 1000.0, currentPtr->gScore * resolution );    
+                    ROS_WARN("[A*]{sucess}  Time in A*  is %f ms, path cost is %f m", (time_2 - time_1).toSec() * 1000.0, currentPtr->gScore * resolution );    
                     return;
                 }
                 else{

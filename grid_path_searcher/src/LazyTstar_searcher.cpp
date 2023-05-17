@@ -308,7 +308,7 @@ void LazyTstarPathFinder::LThetastarGraphSearch(Eigen::Vector3d start_pt, Eigen:
                     ros::Time time_2 = ros::Time::now();
                     terminatePtr = neighborPtr;
                     startPtr->cameFrom= NULL;
-                    ROS_WARN("[theta*]{sucess}  Time in theta*  is %f ms, path cost if %f m", (time_2 - time_1).toSec() * 1000.0, currentPtr->gScore * resolution );    
+                    ROS_WARN("[theta*]{sucess}  Time in theta*  is %f ms, path cost is %f m", (time_2 - time_1).toSec() * 1000.0, currentPtr->gScore * resolution );    
                     return;
                 }
                 else{

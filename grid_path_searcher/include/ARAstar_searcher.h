@@ -41,7 +41,7 @@ public:
 
     double fvalue(GridNodePtr node1,GridNodePtr node2);
 
-    void ImprovePath(GridNodePtr startPtr,GridNodePtr endPtr);
+    void ImprovePath(GridNodePtr startPtr,GridNodePtr endPtr,bool& flag);
 
     void ARAGraphSearch(Eigen::Vector3d start_pt, Eigen::Vector3d end_pt);
 

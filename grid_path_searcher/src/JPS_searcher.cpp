@@ -227,7 +227,7 @@ void JPSPathFinder::JPSGraphSearch(Eigen::Vector3d start_pt, Eigen::Vector3d end
                 if(neighborPtr->index == goalIdx){
                     ros::Time time_2 = ros::Time::now();
                     terminatePtr = neighborPtr;
-                    ROS_WARN("[JPS]{sucess}  Time in JPS  is %f ms, path cost if %f m", (time_2 - time_1).toSec() * 1000.0, currentPtr->gScore * resolution );    
+                    ROS_WARN("[JPS]{sucess}  Time in JPS  is %f ms, path cost is %f m", (time_2 - time_1).toSec() * 1000.0, currentPtr->gScore * resolution );    
                     return;
                 }
                 else{

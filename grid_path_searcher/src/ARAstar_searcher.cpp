@@ -89,9 +89,11 @@ void ARAPathFinder::UpdateOpenset(){
 }
 
 
-void ARAPathFinder::ImprovePath(GridNodePtr startPtr,GridNodePtr endPtr)
+void ARAPathFinder::ImprovePath(GridNodePtr startPtr,GridNodePtr endPtr,bool& flag)
 {
-    
+    if(flag){
+        flag=false;
+    }
     CLOSED_set.clear();// closeset，初始化为空集
     INCONS_set.clear();//非一致列表，初始化为空集
 
@@ -137,7 +139,7 @@ void ARAPathFinder::ImprovePath(GridNodePtr startPtr,GridNodePtr endPtr)
                     terminatePtr = neighborPtr;
                     save_current_path(neighborPtr);
                     search_count++;
-                    
+                    flag=true;
                     ROS_INFO("Search successfully");
                     // ROS_INFO("END Gscore is %f",terminatePtr->gScore);
                     // ROS_INFO("END Hscore is %f",terminatePtr->hScore);
@@ -203,6 +205,8 @@ void ARAPathFinder::ARAGraphSearch(Eigen::Vector3d start_pt, Eigen::Vector3d end
     CLOSED_set.clear();
     search_count=0;
 
+    bool flag=false;
+
     // 记录起点和终点对应的栅格坐标
     Eigen::Vector3i start_idx = coord2gridIndex(start_pt);
     Eigen::Vector3i end_idx = coord2gridIndex(end_pt);
@@ -226,8 +230,11 @@ void ARAPathFinder::ARAGraphSearch(Eigen::Vector3d start_pt, Eigen::Vector3d end
     startPtr->id = 1;
     startPtr->nodeMapIt = openSet.insert(make_pair(startPtr->fScore, startPtr));
     
-    ImprovePath(startPtr,endPtr);
-    
+    ImprovePath(startPtr,endPtr,flag);
+    if(flag){
+        ros::Time time_succ = ros::Time::now();
+        ROS_WARN("[ARA*]{sucess}  Time in ARA*  is %f ms, path cost is %f m", (time_succ - time_1).toSec() * 1000.0, endPtr->gScore * resolution );
+    }
     
     while (Weight_ - 1.0> eps )
     {
@@ -251,13 +258,17 @@ void ARAPathFinder::ARAGraphSearch(Eigen::Vector3d start_pt, Eigen::Vector3d end
         UpdateOpenset();
         //ROS_INFO("update");
         //endPtr->gScore=inf;
-        ImprovePath(startPtr,endPtr);
+        ImprovePath(startPtr,endPtr,flag);
         //ROS_INFO("improve");
+        if(flag){
+        ros::Time time_succ = ros::Time::now();
+        ROS_WARN("[ARA*]{sucess}  Time in ARA*  is %f ms, path cost is %f m", (time_succ - time_1).toSec() * 1000.0, endPtr->gScore * resolution );
+    }
 
     }
     
     ros::Time time_2 = ros::Time::now();
-    ROS_WARN("[ARA*]{sucess}  Time in ARA*  is %f ms, path cost if %f m", (time_2 - time_1).toSec() * 1000.0, endPtr->gScore * resolution );
+    ROS_WARN("[ARA*]{sucess}  Time in ARA*  is %f ms, path cost is %f m", (time_2 - time_1).toSec() * 1000.0, endPtr->gScore * resolution );
 }
 
 
