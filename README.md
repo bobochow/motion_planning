@@ -4,7 +4,7 @@
 
 # 1. Introduction
 - This project implements several motion planning algorithm,including A*,ARA*,D*,JPS,Lazy Theta*,which were developed on the base of the Course [深蓝学院 浙大高飞主讲《移动机器人运动规划》](https://www.shenlanxueyuan.com/course/521).
-- The note [ Motion Planning 学习笔记 by bo zhou](https://note.youdao.com/s/8DqZpzSO) can help you understand the core idea of these algorithm.
+- The note [ Motion Planning 学习笔记 by bo zhou](https://note.youdao.com/s/8DqZpzSO) may help you understand these algorithm.
 # 2. Quick start
 1. Our software is developed and tested in Ubuntu 18.04, ROS Melodic.ROS can be installed here: [ROS Installation](http://wiki.ros.org/ROS/Installation).
 2. Build on ROS
@@ -26,3 +26,12 @@
     ```
     - Choose the "3D NAV Goal" rviz tool to set goal.
 
+4. Change the algorithm to run
+
+- change the arg **kind** in ~/your_catkin_ws/src/motion_planning/grid_path_searcher/launch/demo.launch
+- kind:
+    - 0 --> A*
+    - 1 --> ARA*
+    - 2 --> D*
+    - 3 --> JPS
+    - 4 --> Lazy Theta*
